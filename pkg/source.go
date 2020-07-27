@@ -37,9 +37,10 @@ func Sources(manifest model.Manifest) error {
 	}
 
 	for repo, dependency := range manifest.Dependencies.Get() {
-		if repo == "istio" {
+		if repo == "istio" || repo == "envoy" {
 			continue
 		}
+
 		if dependency == nil {
 			log.Warnf("skipping clone of missing dependency: %v", repo)
 			continue
@@ -48,6 +49,12 @@ func Sources(manifest model.Manifest) error {
 			return err
 		}
 	}
+
+	// Clone envoy at the end. It needs proxy repo to determine its SHA.
+	if err := cloneRepo(manifest, "envoy", manifest.Dependencies.Envoy); err != nil {
+		return err
+	}
+
 	return nil
 }
 
